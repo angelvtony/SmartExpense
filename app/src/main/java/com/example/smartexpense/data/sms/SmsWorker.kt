@@ -25,7 +25,7 @@ class SmsWorker @AssistedInject constructor(
             val newSyncedTime = System.currentTimeMillis()
 
             val cursor = applicationContext.contentResolver.query(
-                Uri.parse("content:
+                Uri.parse("content://sms/inbox"),
                 arrayOf("address", "body", "date"),
                 "date > ?",
                 arrayOf(lastSyncedTime.toString()),
