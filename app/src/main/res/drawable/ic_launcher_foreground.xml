@@ -1,9 +1,53 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+
+    <!-- Subtle AI Glow / Ambient Pulse -->
+    <path
+        android:alpha="0.2"
+        android:fillColor="#00E676"
+        android:pathData="M54,54m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0" />
+
+    <!-- Wallet Body / Glass Body -->
+    <path
+        android:pathData="M30,35 C30,31 33,28 37,28 L71,28 C75,28 78,31 78,35 L78,73 C78,77 75,80 71,80 L37,80 C33,80 30,77 30,73 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="30"
+                android:startY="28"
+                android:endX="78"
+                android:endY="80"
+                android:type="linear">
+                <item android:offset="0" android:color="#00E676" />
+                <item android:offset="1" android:color="#00BFA5" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Wallet Flap / Card Slot -->
+    <path
+        android:fillColor="#0A0A0A"
+        android:alpha="0.4"
+        android:pathData="M30,35 L78,35 L78,45 L30,45 Z" />
+
+    <!-- Stylized Rupee Symbol (₹) -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M53,42 L53,32 L49,32 L49,42 L39,42 L39,46 L49,46 L49,56 L53,56 L53,46 L63,46 L63,42 L53,42 Z M42,65 L66,65 L66,69 L42,69 L42,65 Z M42,74 L66,74 L66,78 L42,78 L42,74 Z M34,25 L74,25 C78.41,25 82,28.59 82,33 L82,75 C82,79.41 78.41,83 74,83 L34,83 C29.59,83 26,79.41 26,75 L26,33 C26,28.59 29.59,25 34,25 Z M34,29 C31.79,29 30,30.79 30,33 L30,75 C30,77.21 31.79,79 34,79 L74,79 C76.21,79 78,77.21 78,75 L78,33 C78,30.79 76.21,29 74,29 L34,29 Z"/>
+        android:pathData="M48,50 L60,50 M48,55 L60,55 M54,50 C48,50 44,55 44,62 C44,70 50,75 54,75 L62,75 L54,65" />
+
+    <!-- Analytics / Trend Line -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M40,65 L50,55 L60,68 L75,45" />
+
+    <!-- Spark / AI Intelligence Dot -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M75,45m-2.5,0a2.5,2.5 0,1 1,5 0a2.5,2.5 0,1 1,-5 0" />
+
 </vector>

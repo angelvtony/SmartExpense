@@ -381,6 +381,72 @@ public final class TransactionDao_Impl implements TransactionDao {
   }
 
   @Override
+  public Flow<Transaction> getTransactionById(final long id) {
+    final String _sql = "SELECT * FROM transactions WHERE id = ?";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
+    int _argIndex = 1;
+    _statement.bindLong(_argIndex, id);
+    return CoroutinesRoom.createFlow(__db, false, new String[] {"transactions"}, new Callable<Transaction>() {
+      @Override
+      @Nullable
+      public Transaction call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+          final int _cursorIndexOfTitle = CursorUtil.getColumnIndexOrThrow(_cursor, "title");
+          final int _cursorIndexOfAmount = CursorUtil.getColumnIndexOrThrow(_cursor, "amount");
+          final int _cursorIndexOfCategory = CursorUtil.getColumnIndexOrThrow(_cursor, "category");
+          final int _cursorIndexOfDate = CursorUtil.getColumnIndexOrThrow(_cursor, "date");
+          final int _cursorIndexOfPaymentMethod = CursorUtil.getColumnIndexOrThrow(_cursor, "paymentMethod");
+          final int _cursorIndexOfNote = CursorUtil.getColumnIndexOrThrow(_cursor, "note");
+          final int _cursorIndexOfType = CursorUtil.getColumnIndexOrThrow(_cursor, "type");
+          final Transaction _result;
+          if (_cursor.moveToFirst()) {
+            final long _tmpId;
+            _tmpId = _cursor.getLong(_cursorIndexOfId);
+            final String _tmpTitle;
+            _tmpTitle = _cursor.getString(_cursorIndexOfTitle);
+            final double _tmpAmount;
+            _tmpAmount = _cursor.getDouble(_cursorIndexOfAmount);
+            final String _tmpCategory;
+            _tmpCategory = _cursor.getString(_cursorIndexOfCategory);
+            final Date _tmpDate;
+            final Long _tmp;
+            if (_cursor.isNull(_cursorIndexOfDate)) {
+              _tmp = null;
+            } else {
+              _tmp = _cursor.getLong(_cursorIndexOfDate);
+            }
+            final Date _tmp_1 = __converters.fromTimestamp(_tmp);
+            if (_tmp_1 == null) {
+              throw new IllegalStateException("Expected NON-NULL 'java.util.Date', but it was NULL.");
+            } else {
+              _tmpDate = _tmp_1;
+            }
+            final String _tmpPaymentMethod;
+            _tmpPaymentMethod = _cursor.getString(_cursorIndexOfPaymentMethod);
+            final String _tmpNote;
+            _tmpNote = _cursor.getString(_cursorIndexOfNote);
+            final TransactionType _tmpType;
+            _tmpType = __TransactionType_stringToEnum(_cursor.getString(_cursorIndexOfType));
+            _result = new Transaction(_tmpId,_tmpTitle,_tmpAmount,_tmpCategory,_tmpDate,_tmpPaymentMethod,_tmpNote,_tmpType);
+          } else {
+            _result = null;
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+        }
+      }
+
+      @Override
+      protected void finalize() {
+        _statement.release();
+      }
+    });
+  }
+
+  @Override
   public Flow<Double> getTotalExpenseInRange(final Date startDate, final Date endDate) {
     final String _sql = "SELECT SUM(amount) FROM transactions WHERE type = 'EXPENSE' AND date >= ? AND date <= ?";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 2);

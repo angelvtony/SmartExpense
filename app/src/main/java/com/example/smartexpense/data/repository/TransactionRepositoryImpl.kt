@@ -26,6 +26,9 @@ class TransactionRepositoryImpl @Inject constructor(
     override fun getRecentTransactions(limit: Int): Flow<List<Transaction>> =
         dao.getRecentTransactions(limit)
 
+    override fun getTransactionById(id: Long): Flow<Transaction?> =
+        dao.getTransactionById(id)
+
     override suspend fun insertTransaction(transaction: Transaction) {
         dao.insertTransaction(transaction)
 

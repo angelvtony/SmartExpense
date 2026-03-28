@@ -19,11 +19,11 @@ class SmsWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        val prefs = applicationContext.getSharedPreferences("sms_prefs", Context.MODE_PRIVATE)
+        val lastSyncedTime = prefs.getLong("last_synced_time", 0L)
+        val newSyncedTime = System.currentTimeMillis()
+
         try {
-
-            val lastSyncedTime = 0L 
-            val newSyncedTime = System.currentTimeMillis()
-
             val cursor = applicationContext.contentResolver.query(
                 Uri.parse("content://sms/inbox"),
                 arrayOf("address", "body", "date"),
@@ -44,14 +44,12 @@ class SmsWorker @AssistedInject constructor(
 
                     val transaction = SmsParser.parseSms(address, body, date)
                     if (transaction != null) {
-
                         repository.insertTransaction(transaction)
                     }
                 }
             }
             
-
-            
+            prefs.edit().putLong("last_synced_time", newSyncedTime).apply()
             Result.success()
         } catch (e: Exception) {
             e.printStackTrace()

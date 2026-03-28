@@ -22,7 +22,7 @@ class Converters {
     }
 }
 
-@Database(entities = [Transaction::class, BudgetEntity::class], version = 2, exportSchema = false)
+@Database(entities = [Transaction::class, BudgetEntity::class], version = 3, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao

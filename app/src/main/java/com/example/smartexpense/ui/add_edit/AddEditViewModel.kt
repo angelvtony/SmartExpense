@@ -31,10 +31,8 @@ class AddEditViewModel @Inject constructor(
     }
 
     private fun loadTransaction(id: Long) {
-
         viewModelScope.launch {
-            repository.getAllTransactions().collect { list ->
-                val transaction = list.find { it.id == id }
+            repository.getTransactionById(id).collect { transaction ->
                 transaction?.let {
                     _uiState.value = AddEditUiState(
                         title = it.title,
@@ -84,14 +82,13 @@ class AddEditViewModel @Inject constructor(
             } else {
                 repository.insertTransaction(transaction)
             }
-
         }
     }
 
     private fun deleteTransaction() {
         transactionId?.let {
             viewModelScope.launch {
-
+                // Implementation for delete if needed
             }
         }
     }

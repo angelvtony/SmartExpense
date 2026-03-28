@@ -21,5 +21,10 @@ val AtelierOnSurfaceVariant = Color(0xFFA0A0A0)
 val GreenIncome = Color(0xFF00C853)
 val RedExpense = Color(0xFFFF8B81)
 
+val IncomeGradientStart = Color(0xFF00E676)
+val IncomeGradientEnd = Color(0xFF00BFA5)
+val ExpenseGradientStart = Color(0xFFFF80AB)
+val ExpenseGradientEnd = Color(0xFFFF3D00)
+
 val GradientStart = Color(0xFF00C853)
 val GradientEnd = Color(0xFF009624)

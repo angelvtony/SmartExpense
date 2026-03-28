@@ -46,6 +46,8 @@ import com.example.smartexpense.ui.theme.GreenIncome
 import com.example.smartexpense.ui.theme.RedExpense
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.res.stringResource
+import com.example.smartexpense.R
 import com.example.smartexpense.data.local.entity.Transaction
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,11 +60,20 @@ fun DashboardScreen(
     onAnalysisClick: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
-    val recentTransactions by viewModel.recentTransactions.collectAsState()
-    val totalIncome by viewModel.totalIncome.collectAsState()
-    val totalExpense by viewModel.totalExpense.collectAsState()
-    val budgets by viewModel.budgets.collectAsState()
-    val weeklyInsight by viewModel.weeklyInsights.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    
+    if (uiState.isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    val recentTransactions = uiState.recentTransactions
+    val totalIncome = uiState.totalIncome
+    val totalExpense = uiState.totalExpense
+    val budgets = uiState.budgets
+    val weeklyInsight = uiState.weeklyInsight
 
     val context = LocalContext.current
     val sharedPrefs = remember { context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE) }
@@ -123,7 +134,7 @@ fun DashboardScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Welcome Back,",
+                            text = stringResource(R.string.welcome_back),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

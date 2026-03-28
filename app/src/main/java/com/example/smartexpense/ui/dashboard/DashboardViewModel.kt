@@ -28,83 +28,57 @@ import androidx.work.WorkManager
 import android.app.Application
 import com.example.smartexpense.data.worker.WeeklyReportWorker
 import com.example.smartexpense.data.worker.MonthlyReportWorker
+import com.example.smartexpense.domain.usecase.GetWeeklyInsightsUseCase
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val repository: TransactionRepository,
     private val budgetRepository: BudgetRepository,
+    private val getWeeklyInsightsUseCase: GetWeeklyInsightsUseCase,
     private val application: Application
 ) : ViewModel() {
 
     private val dateFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
     private val currentMonth = dateFormat.format(Date())
 
-    val budgets: StateFlow<List<BudgetEntity>> = budgetRepository.getBudgetsForMonth(currentMonth)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val calendar = Calendar.getInstance().apply {
+        set(Calendar.DAY_OF_MONTH, 1)
+    }
+    private val startDate = calendar.time
+    private val endDate = calendar.apply {
+        add(Calendar.MONTH, 1)
+        add(Calendar.DAY_OF_MONTH, -1)
+    }.time
 
-    val recentTransactions: StateFlow<List<Transaction>> = repository.getRecentTransactions(10)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    private val calendar = Calendar.getInstance()
-    private val startDate: Date
-    private val endDate: Date
+    val uiState: StateFlow<DashboardUiState> = combine(
+        repository.getRecentTransactions(10),
+        budgetRepository.getBudgetsForMonth(currentMonth),
+        repository.getTotalIncomeInRange(startDate, endDate),
+        repository.getTotalExpenseInRange(startDate, endDate),
+        getWeeklyInsightsUseCase()
+    ) { recentTransactions, budgets, totalIncome, totalExpense, weeklyInsight ->
+        DashboardUiState(
+            recentTransactions = recentTransactions,
+            budgets = budgets,
+            totalIncome = totalIncome ?: 0.0,
+            totalExpense = totalExpense ?: 0.0,
+            weeklyInsight = weeklyInsight,
+            isLoading = false
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = DashboardUiState(isLoading = true)
+    )
 
     init {
-        calendar.set(Calendar.DAY_OF_MONTH, 1)
-        startDate = calendar.time
-        calendar.add(Calendar.MONTH, 1)
-        calendar.add(Calendar.DAY_OF_MONTH, -1)
-        endDate = calendar.time
-
         viewModelScope.launch {
             budgetRepository.calculateAndSetupMonthlyBudgets(currentMonth)
         }
-
-        scheduleWorkers()
     }
-
-    private fun scheduleWorkers() {
-        val workManager = WorkManager.getInstance(application)
-
-        val weeklyRequest = PeriodicWorkRequestBuilder<WeeklyReportWorker>(7, TimeUnit.DAYS)
-            .build()
-        workManager.enqueueUniquePeriodicWork(
-            "WeeklyReportWork",
-            ExistingPeriodicWorkPolicy.KEEP,
-            weeklyRequest
-        )
-
-        val monthlyRequest = PeriodicWorkRequestBuilder<MonthlyReportWorker>(30, TimeUnit.DAYS)
-            .build()
-        workManager.enqueueUniquePeriodicWork(
-            "MonthlyReportWork",
-            ExistingPeriodicWorkPolicy.KEEP,
-            monthlyRequest
-        )
-    }
-
-    val totalIncome = repository.getTotalIncomeInRange(startDate, endDate)
-        .map { it ?: 0.0 }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
-
-    val totalExpense = repository.getTotalExpenseInRange(startDate, endDate)
-        .map { it ?: 0.0 }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
-
-    val weeklyInsights = repository.getAllTransactions().map { transitions ->
-        val calendar = Calendar.getInstance()
-        val now = calendar.time
-        calendar.add(Calendar.DAY_OF_YEAR, -7)
-        val sevenDaysAgo = calendar.time
-
-        val lastWeekTxs = transitions.filter { it.date >= sevenDaysAgo && it.date <= now && it.type == TransactionType.EXPENSE }
-        val weeklyTotal = lastWeekTxs.sumOf { it.amount }
-        val topCategory = lastWeekTxs.groupBy { it.category }
-            .maxByOrNull { it.value.sumOf { tx -> tx.amount } }?.key ?: "None"
-
-        WeeklyInsight(weeklyTotal, topCategory)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), WeeklyInsight(0.0, "None"))
 
     fun deleteTransaction(transaction: Transaction) {
         viewModelScope.launch {
@@ -113,12 +87,26 @@ class DashboardViewModel @Inject constructor(
     }
 
     fun downloadExcelReport(context: android.content.Context) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val transactions = repository.getAllTransactions().first()
             val uri = ReportExporter.generateExcelReport(context, transactions)
-            uri?.let { ReportExporter.shareFile(context, it) }
+            uri?.let { 
+                withContext(Dispatchers.Main) {
+                    ReportExporter.shareFile(context, it)
+                }
+            }
         }
     }
 }
+
+data class DashboardUiState(
+    val recentTransactions: List<Transaction> = emptyList(),
+    val budgets: List<BudgetEntity> = emptyList(),
+    val totalIncome: Double = 0.0,
+    val totalExpense: Double = 0.0,
+    val weeklyInsight: WeeklyInsight = WeeklyInsight(0.0, "None"),
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
 
 data class WeeklyInsight(val total: Double, val topCategory: String)

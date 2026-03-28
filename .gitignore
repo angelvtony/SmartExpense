@@ -1,0 +1,10 @@
+*.hprof
+.gradle/
+build/
+app/build/
+*.iml
+.idea/
+local.properties
+capture.png
+*.apk
+*.jks

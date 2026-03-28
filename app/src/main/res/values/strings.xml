@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">SmartExpense</string>
+    <string name="welcome_back">Welcome Back,</string>
+    <string name="total_balance">Total Balance</string>
+    <string name="income">Income</string>
+    <string name="expense">Expense</string>
+    <string name="recent_transactions">Recent Transactions</string>
+    <string name="view_all">View All</string>
+    <string name="weekly_insight">Weekly Insight 💡</string>
+    <string name="budgets">Budgets</string>
+    <string name="delete_transaction">Delete Transaction</string>
+    <string name="delete_transaction_confirm">Are you sure you want to delete \%1$s?</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="add_transaction">Add Transaction</string>
+    <string name="edit_transaction">Edit Transaction</string>
+    <string name="loading">Loading...</string>
 </resources>

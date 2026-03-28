@@ -4,6 +4,7 @@ package com.example.smartexpense.ui.dashboard;
 import android.app.Application;
 import com.example.smartexpense.domain.repository.BudgetRepository;
 import com.example.smartexpense.domain.repository.TransactionRepository;
+import com.example.smartexpense.domain.usecase.GetWeeklyInsightsUseCase;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;
@@ -25,30 +26,36 @@ public final class DashboardViewModel_Factory implements Factory<DashboardViewMo
 
   private final Provider<BudgetRepository> budgetRepositoryProvider;
 
+  private final Provider<GetWeeklyInsightsUseCase> getWeeklyInsightsUseCaseProvider;
+
   private final Provider<Application> applicationProvider;
 
   public DashboardViewModel_Factory(Provider<TransactionRepository> repositoryProvider,
       Provider<BudgetRepository> budgetRepositoryProvider,
+      Provider<GetWeeklyInsightsUseCase> getWeeklyInsightsUseCaseProvider,
       Provider<Application> applicationProvider) {
     this.repositoryProvider = repositoryProvider;
     this.budgetRepositoryProvider = budgetRepositoryProvider;
+    this.getWeeklyInsightsUseCaseProvider = getWeeklyInsightsUseCaseProvider;
     this.applicationProvider = applicationProvider;
   }
 
   @Override
   public DashboardViewModel get() {
-    return newInstance(repositoryProvider.get(), budgetRepositoryProvider.get(), applicationProvider.get());
+    return newInstance(repositoryProvider.get(), budgetRepositoryProvider.get(), getWeeklyInsightsUseCaseProvider.get(), applicationProvider.get());
   }
 
   public static DashboardViewModel_Factory create(
       Provider<TransactionRepository> repositoryProvider,
       Provider<BudgetRepository> budgetRepositoryProvider,
+      Provider<GetWeeklyInsightsUseCase> getWeeklyInsightsUseCaseProvider,
       Provider<Application> applicationProvider) {
-    return new DashboardViewModel_Factory(repositoryProvider, budgetRepositoryProvider, applicationProvider);
+    return new DashboardViewModel_Factory(repositoryProvider, budgetRepositoryProvider, getWeeklyInsightsUseCaseProvider, applicationProvider);
   }
 
   public static DashboardViewModel newInstance(TransactionRepository repository,
-      BudgetRepository budgetRepository, Application application) {
-    return new DashboardViewModel(repository, budgetRepository, application);
+      BudgetRepository budgetRepository, GetWeeklyInsightsUseCase getWeeklyInsightsUseCase,
+      Application application) {
+    return new DashboardViewModel(repository, budgetRepository, getWeeklyInsightsUseCase, application);
   }
 }
