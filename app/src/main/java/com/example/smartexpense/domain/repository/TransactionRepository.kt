@@ -6,6 +6,7 @@ import java.util.Date
 
 interface TransactionRepository {
     fun getAllTransactions(): Flow<List<Transaction>>
+    fun searchTransactions(query: String): Flow<List<Transaction>>
     fun getTransactionsInRange(startDate: Date, endDate: Date): Flow<List<Transaction>>
     fun getRecentTransactions(limit: Int): Flow<List<Transaction>>
     fun getTransactionById(id: Long): Flow<Transaction?>

@@ -1,10 +1,36 @@
-*.hprof
-.gradle/
-build/
-app/build/
 *.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+/.idea/deploymentTargetDropDown.xml
 .idea/
-local.properties
-capture.png
-*.apk
+.idea
+/build
+/*/build
+*.hprof
+*.pyc
+/captures
+.externalNativeBuild
+.cxx
+/google-services.json
+# Keystore files
 *.jks
+*.keystore
+# Google Play Services
+.google_play_services/
+# Proguard
+/app/proguard-rules.pro
+# NDK
+obj/
+# Crashlytics configuration file
+com_crashlytics_export_strings.xml
+# Log files
+*.log
+# OS files
+.DS_Store
+Thumbs.db

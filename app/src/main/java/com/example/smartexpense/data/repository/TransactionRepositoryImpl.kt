@@ -19,6 +19,8 @@ class TransactionRepositoryImpl @Inject constructor(
     private val notificationHelper: NotificationHelper
 ) : TransactionRepository {
     override fun getAllTransactions(): Flow<List<Transaction>> = dao.getAllTransactions()
+    
+    override fun searchTransactions(query: String): Flow<List<Transaction>> = dao.searchTransactions(query)
 
     override fun getTransactionsInRange(startDate: Date, endDate: Date): Flow<List<Transaction>> =
         dao.getTransactionsInRange(startDate, endDate)
