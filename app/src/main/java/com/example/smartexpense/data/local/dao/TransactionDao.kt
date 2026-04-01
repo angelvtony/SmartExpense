@@ -35,10 +35,20 @@ interface TransactionDao {
 
     @Delete
     suspend fun deleteTransaction(transaction: Transaction)
-    
-    @Query("SELECT SUM(amount) FROM transactions WHERE type = 'EXPENSE' AND date >= :startDate AND date <= :endDate")
-    fun getTotalExpenseInRange(startDate: Date, endDate: Date): Flow<Double?>
 
-    @Query("SELECT SUM(amount) FROM transactions WHERE type = 'INCOME' AND date >= :startDate AND date <= :endDate")
-    fun getTotalIncomeInRange(startDate: Date, endDate: Date): Flow<Double?>
+    @Query("""
+    SELECT COALESCE(SUM(amount), 0) 
+    FROM transactions 
+    WHERE type = 'EXPENSE' 
+    AND date >= :startDate AND date <= :endDate
+""")
+    fun getTotalExpenseInRange(startDate: Date, endDate: Date): Flow<Double>
+
+    @Query("""
+    SELECT COALESCE(SUM(amount), 0) 
+    FROM transactions 
+    WHERE type = 'INCOME' 
+    AND date >= :startDate AND date <= :endDate
+""")
+    fun getTotalIncomeInRange(startDate: Date, endDate: Date): Flow<Double>
 }
