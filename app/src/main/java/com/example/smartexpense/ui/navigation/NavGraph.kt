@@ -3,6 +3,7 @@ package com.example.smartexpense.ui.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -24,6 +25,7 @@ import androidx.navigation.navArgument
 import com.example.smartexpense.ui.add_edit.AddEditTransactionScreen
 import com.example.smartexpense.ui.all_transactions.AllTransactionsScreen
 import com.example.smartexpense.ui.analysis.AnalysisDashboardScreen
+import com.example.smartexpense.ui.analysis.MonthlyOverviewScreen
 import com.example.smartexpense.ui.dashboard.DashboardScreen
 import com.example.smartexpense.ui.settings.SettingsScreen
 
@@ -35,6 +37,7 @@ sealed class Screen(val route: String) {
         fun createRoute(transactionId: Long? = null) = "add_edit_transaction?transactionId=${transactionId ?: -1L}"
     }
     object Settings : Screen("settings")
+    object MonthlyOverview : Screen("monthly_overview")
 }
 
 @Composable
@@ -47,6 +50,7 @@ fun NavGraph() {
     val bottomNavItems = listOf(
         Triple(Screen.Dashboard.route, "Home", Icons.Default.Home),
         Triple(Screen.Analysis.route, "Analysis", Icons.Default.BarChart),
+        Triple(Screen.MonthlyOverview.route, "Monthly", Icons.Default.CalendarMonth),
         Triple(Screen.Settings.route, "Settings", Icons.Default.Settings)
     )
 
@@ -129,6 +133,15 @@ fun NavGraph() {
 
             composable(Screen.Analysis.route) {
                 AnalysisDashboardScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onSeeAllMonthsClick = {
+                        navController.navigate(Screen.MonthlyOverview.route)
+                    }
+                )
+            }
+
+            composable(Screen.MonthlyOverview.route) {
+                MonthlyOverviewScreen(
                     onBackClick = { navController.popBackStack() }
                 )
             }

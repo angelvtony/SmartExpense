@@ -34,6 +34,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.smartexpense.data.local.entity.TransactionType
 import com.example.smartexpense.ui.theme.GreenIncome
 import com.example.smartexpense.ui.theme.RedExpense
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import java.text.SimpleDateFormat
+import java.util.*
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -45,11 +50,39 @@ fun AddEditTransactionScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
+    
+    var showDatePicker by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = uiState.date.time
+    )
 
     val transactionTypeColor by animateColorAsState(
         targetValue = if (uiState.type == TransactionType.INCOME) GreenIncome else RedExpense,
         label = "TypeColor"
     )
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let {
+                        viewModel.onEvent(AddEditEvent.DateChanged(Date(it)))
+                    }
+                    showDatePicker = false
+                }) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -186,6 +219,46 @@ fun AddEditTransactionScreen(
                     },
                     singleLine = true
                 )
+            }
+
+            Column {
+                Text(
+                    "Date", 
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+                    OutlinedTextField(
+                        value = dateFormatter.format(uiState.date),
+                        onValueChange = { },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = true,
+                        readOnly = true,
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = transactionTypeColor,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.CalendarToday, 
+                                contentDescription = null,
+                                tint = transactionTypeColor
+                            )
+                        }
+                    )
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable { showDatePicker = true }
+                    )
+                }
             }
 
             Column {

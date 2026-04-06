@@ -110,6 +110,15 @@ class DashboardViewModel @Inject constructor(
             }
         }
     }
+
+    fun importExcelReport(context: android.content.Context, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val transactions = ReportExporter.importExcelReport(context, uri)
+            transactions.forEach {
+                repository.insertTransaction(it)
+            }
+        }
+    }
 }
 
 data class DashboardUiState(

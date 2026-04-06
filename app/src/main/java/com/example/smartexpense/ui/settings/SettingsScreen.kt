@@ -36,6 +36,9 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.smartexpense.data.sms.SmsWorker
 import java.util.concurrent.TimeUnit
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.NetworkType
+import androidx.work.Constraints
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -222,7 +225,46 @@ fun SettingsScreen(
                     }
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Text(
+                "Maintenance",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)),
+                shape = MaterialTheme.shapes.medium,
+                onClick = {
+                    val smsPrefs = context.getSharedPreferences("sms_prefs", Context.MODE_PRIVATE)
+                    smsPrefs.edit().putLong("last_synced_time", 0L).apply()
+                    
+                    val workRequest = OneTimeWorkRequestBuilder<SmsWorker>()
+                        .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.NOT_REQUIRED).build())
+                        .build()
+                    WorkManager.getInstance(context).enqueue(workRequest)
+                }
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        "Sync All Historical Data", 
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Text(
+                        "Use this if your data is missing. This will re-scan your entire SMS inbox for transactions.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }

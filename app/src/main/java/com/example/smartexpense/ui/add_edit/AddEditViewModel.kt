@@ -55,6 +55,7 @@ class AddEditViewModel @Inject constructor(
             is AddEditEvent.CategoryChanged -> _uiState.value = _uiState.value.copy(category = event.category)
             is AddEditEvent.TypeChanged -> _uiState.value = _uiState.value.copy(type = event.type)
             is AddEditEvent.NoteChanged -> _uiState.value = _uiState.value.copy(note = event.note)
+            is AddEditEvent.DateChanged -> _uiState.value = _uiState.value.copy(date = event.date)
             is AddEditEvent.Save -> saveTransaction()
             is AddEditEvent.Delete -> deleteTransaction()
         }
@@ -110,6 +111,7 @@ sealed class AddEditEvent {
     data class CategoryChanged(val category: String) : AddEditEvent()
     data class TypeChanged(val type: TransactionType) : AddEditEvent()
     data class NoteChanged(val note: String) : AddEditEvent()
+    data class DateChanged(val date: Date) : AddEditEvent()
     object Save : AddEditEvent()
     object Delete : AddEditEvent()
 }

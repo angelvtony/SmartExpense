@@ -24,6 +24,9 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.FileUpload
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -50,6 +53,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.res.stringResource
 import com.example.smartexpense.R
 import com.example.smartexpense.data.local.entity.Transaction
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,6 +83,12 @@ fun DashboardScreen(
     val sharedPrefs = remember { context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE) }
     val userName = sharedPrefs.getString("user_name", "SmartExpense") ?: "SmartExpense"
     val profileIconUri = sharedPrefs.getString("profile_icon_uri", null)
+
+    val excelPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let { viewModel.importExcelReport(context, it) }
+    }
 
     var transactionToDelete by remember { mutableStateOf<Transaction?>(null) }
 
@@ -146,6 +157,13 @@ fun DashboardScreen(
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = { excelPickerLauncher.launch(arrayOf("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) }) {
+                            Icon(
+                                Icons.Default.FileUpload,
+                                contentDescription = "Import Excel",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                         IconButton(onClick = { viewModel.downloadExcelReport(context) }) {
                             Icon(
                                 Icons.Default.FileDownload,
@@ -164,32 +182,30 @@ fun DashboardScreen(
                             val uriString = profileIconUri
                             if (!uriString.isNullOrEmpty()) {
                                 val uri = Uri.parse(uriString)
-                                val bitmap = remember(uriString) {
-                                    try {
-                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                            val source = ImageDecoder.createSource(
-                                                context.contentResolver,
-                                                uri
-                                            )
-                                            ImageDecoder.decodeBitmap(source)
-                                        } else {
-                                            @Suppress("DEPRECATION")
-                                            MediaStore.Images.Media.getBitmap(
-                                                context.contentResolver,
-                                                uri
-                                            )
+                                val bitmap by androidx.compose.runtime.produceState<android.graphics.Bitmap?>(initialValue = null, uriString) {
+                                    value = withContext(Dispatchers.IO) {
+                                        try {
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                                val source = ImageDecoder.createSource(context.contentResolver, uri)
+                                                ImageDecoder.decodeBitmap(source)
+                                            } else {
+                                                @Suppress("DEPRECATION")
+                                                MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+                                            }
+                                        } catch (e: Exception) {
+                                            null
                                         }
-                                    } catch (e: Exception) {
-                                        null
                                     }
                                 }
                                 if (bitmap != null) {
-                                    Image(
-                                        bitmap = bitmap.asImageBitmap(),
-                                        contentDescription = "Profile Icon",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
+                                    bitmap?.asImageBitmap()?.let {
+                                        Image(
+                                            bitmap = it,
+                                            contentDescription = "Profile Icon",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
                                 } else {
                                     Icon(
                                         Icons.Default.Person,

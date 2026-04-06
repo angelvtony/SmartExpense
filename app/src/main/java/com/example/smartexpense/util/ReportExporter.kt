@@ -8,8 +8,10 @@ import com.example.smartexpense.data.local.entity.Transaction
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
 import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.*
+import com.example.smartexpense.data.local.entity.TransactionType
 
 object ReportExporter {
 
@@ -68,5 +70,47 @@ object ReportExporter {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context.startActivity(Intent.createChooser(intent, "Share Report"))
+    }
+
+    fun importExcelReport(context: Context, uri: Uri): List<Transaction> {
+        val transactions = mutableListOf<Transaction>()
+        val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+        
+        inputStream?.use { 
+            val workbook = XSSFWorkbook(it)
+            val sheet = workbook.getSheetAt(0)
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+
+            for (rowIndex in 1..sheet.lastRowNum) {
+                val row = sheet.getRow(rowIndex) ?: continue
+                try {
+                    val dateStr = row.getCell(1)?.stringCellValue ?: ""
+                    val date = dateFormat.parse(dateStr) ?: Date()
+                    val title = row.getCell(2)?.stringCellValue ?: "Imported"
+                    val amount = row.getCell(3)?.numericCellValue ?: 0.0
+                    val category = row.getCell(4)?.stringCellValue ?: "Other"
+                    val typeStr = row.getCell(5)?.stringCellValue ?: "EXPENSE"
+                    val type = try { TransactionType.valueOf(typeStr) } catch (e: Exception) { TransactionType.EXPENSE }
+                    val paymentMethod = row.getCell(6)?.stringCellValue ?: "Manual"
+                    val note = row.getCell(7)?.stringCellValue ?: ""
+
+                    transactions.add(
+                        Transaction(
+                            title = title,
+                            amount = amount,
+                            category = category,
+                            date = date,
+                            paymentMethod = paymentMethod,
+                            note = note,
+                            type = type
+                        )
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            workbook.close()
+        }
+        return transactions
     }
 }

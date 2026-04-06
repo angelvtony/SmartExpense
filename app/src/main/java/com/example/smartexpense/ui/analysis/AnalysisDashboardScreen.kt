@@ -32,6 +32,7 @@ import com.example.smartexpense.ui.theme.RedExpense
 @Composable
 fun AnalysisDashboardScreen(
     onBackClick: () -> Unit,
+    onSeeAllMonthsClick: () -> Unit,
     viewModel: AnalysisViewModel = hiltViewModel()
 ) {
     val currentExpense by viewModel.currentMonthExpense.collectAsState()
@@ -60,6 +61,18 @@ fun AnalysisDashboardScreen(
         ) {
             item {
                 Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Recent Comparison",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
                 MonthlyComparisonCard(currentExpense, lastExpense)
             }
 

@@ -14,12 +14,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.smartexpense.ui.common.TransactionItem
 import com.example.smartexpense.ui.common.TransactionSkeleton
 import com.example.smartexpense.data.local.entity.Transaction
 import com.example.smartexpense.data.local.entity.TransactionType
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,19 +32,12 @@ fun AllTransactionsScreen(
     onTransactionClick: (Long) -> Unit,
     viewModel: AllTransactionsViewModel = hiltViewModel()
 ) {
-    val allTransactions by viewModel.allTransactions.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val groupedTransactions by viewModel.filteredGroupedTransactions.collectAsState()
+    val selectedType by viewModel.selectedType.collectAsState()
     
     var transactionToDelete by remember { mutableStateOf<Transaction?>(null) }
-    var selectedType by remember { mutableStateOf<TransactionType?>(null) }
-
-    // Filter by type IN UI if required, but currently the search in DAO only handles text. 
-    // Let's refine the filter visually.
-    val filteredList = remember(allTransactions, selectedType) {
-        if (selectedType == null) allTransactions
-        else allTransactions.filter { it.type == selectedType }
-    }
 
     if (transactionToDelete != null) {
         AlertDialog(
@@ -112,17 +109,17 @@ fun AllTransactionsScreen(
                 ) {
                     FilterChip(
                         selected = selectedType == null,
-                        onClick = { selectedType = null },
+                        onClick = { viewModel.onTypeFilterChange(null) },
                         label = { Text("All") }
                     )
                     FilterChip(
                         selected = selectedType == TransactionType.INCOME,
-                        onClick = { selectedType = TransactionType.INCOME },
+                        onClick = { viewModel.onTypeFilterChange(TransactionType.INCOME) },
                         label = { Text("Income") }
                     )
                     FilterChip(
                         selected = selectedType == TransactionType.EXPENSE,
-                        onClick = { selectedType = TransactionType.EXPENSE },
+                        onClick = { viewModel.onTypeFilterChange(TransactionType.EXPENSE) },
                         label = { Text("Expense") }
                     )
                 }
@@ -142,11 +139,11 @@ fun AllTransactionsScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
             
-            if (isLoading && allTransactions.isEmpty()) {
+            if (isLoading && groupedTransactions.isEmpty()) {
                 items(5) {
                     TransactionSkeleton()
                 }
-            } else if (filteredList.isEmpty()) {
+            } else if (groupedTransactions.isEmpty()) {
                 item {
                     Box(
                         modifier = Modifier
@@ -162,43 +159,61 @@ fun AllTransactionsScreen(
                     }
                 }
             } else {
-                items(filteredList, key = { it.id }) { transaction ->
-                    val dismissState = rememberSwipeToDismissBoxState(
-                        confirmValueChange = {
-                            if (it == SwipeToDismissBoxValue.EndToStart) {
-                                transactionToDelete = transaction
-                                false
-                            } else {
-                                false
-                            }
-                        }
-                    )
-
-                    SwipeToDismissBox(
-                        state = dismissState,
-                        backgroundContent = {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(vertical = 6.dp)
-                                    .padding(horizontal = 20.dp),
-                                contentAlignment = Alignment.CenterEnd
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Delete",
-                                    tint = Color.Red
-                                )
-                            }
-                        },
-                        enableDismissFromStartToEnd = false,
-                        content = {
-                            TransactionItem(
-                                transaction = transaction,
-                                onClick = { onTransactionClick(transaction.id) }
+                groupedTransactions.forEach { (date, transactions) ->
+                    item {
+                        Column(modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)) {
+                            Text(
+                                text = date,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.padding(top = 4.dp),
+                                thickness = 0.5.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                             )
                         }
-                    )
+                    }
+                    
+                    items(transactions, key = { it.id }) { transaction ->
+                        val dismissState = rememberSwipeToDismissBoxState(
+                            confirmValueChange = {
+                                if (it == SwipeToDismissBoxValue.EndToStart) {
+                                    transactionToDelete = transaction
+                                    false
+                                } else {
+                                    false
+                                }
+                            }
+                        )
+
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            backgroundContent = {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(vertical = 6.dp)
+                                        .padding(horizontal = 20.dp),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Delete",
+                                        tint = Color.Red
+                                    )
+                                }
+                            },
+                            enableDismissFromStartToEnd = false,
+                            content = {
+                                TransactionItem(
+                                    transaction = transaction,
+                                    onClick = { onTransactionClick(transaction.id) }
+                                )
+                            }
+                        )
+                    }
                 }
             }
             
@@ -207,4 +222,9 @@ fun AllTransactionsScreen(
             }
         }
     }
+}
+
+private fun isSameDay(cal1: Calendar, cal2: Calendar): Boolean {
+    return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+            cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
 }
